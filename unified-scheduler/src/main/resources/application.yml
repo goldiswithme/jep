@@ -1,0 +1,161 @@
+# ==============================
+# 统一外部系统接口调度服务配置
+# Unified External System Interface Scheduler Configuration
+# ==============================
+
+server:
+  port: 8080
+  servlet:
+    context-path: /unified-scheduler
+
+spring:
+  application:
+    name: unified-scheduler
+  
+  # 数据库配置
+  datasource:
+    url: jdbc:postgresql://localhost:5432/unified_scheduler
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:password}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      idle-timeout: 300000
+      connection-timeout: 20000
+  
+  # JPA配置
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        show_sql: false
+        format_sql: true
+    show-sql: false
+  
+  # Redis配置
+  redis:
+    host: ${REDIS_HOST:localhost}
+    port: ${REDIS_PORT:6379}
+    password: ${REDIS_PASSWORD:}
+    database: 0
+    timeout: 3000ms
+    lettuce:
+      pool:
+        max-active: 8
+        max-idle: 8
+        min-idle: 0
+        max-wait: -1ms
+  
+  # RabbitMQ配置
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USERNAME:guest}
+    password: ${RABBITMQ_PASSWORD:guest}
+    virtual-host: ${RABBITMQ_VHOST:/}
+    listener:
+      simple:
+        retry:
+          enabled: true
+          initial-interval: 1000ms
+          max-attempts: 3
+          max-interval: 10000ms
+          multiplier: 2.0
+
+# XXL-Job配置
+xxl:
+  job:
+    admin:
+      addresses: ${XXL_JOB_ADMIN_ADDRESSES:http://localhost:8080/xxl-job-admin}
+    executor:
+      appname: unified-scheduler
+      address: 
+      ip: 
+      port: 9999
+      logpath: /data/applogs/xxl-job/jobhandler
+      logretentiondays: 30
+    accessToken: ${XXL_JOB_ACCESS_TOKEN:}
+
+# 外部系统接口配置
+external-systems:
+  # HTTP客户端全局配置
+  http:
+    connect-timeout: 30000
+    read-timeout: 60000
+    connection-pool-size: 100
+    connection-per-route: 20
+  
+  # WebSocket配置
+  websocket:
+    enabled: true
+    max-connections: 100
+  
+  # MQTT配置
+  mqtt:
+    enabled: true
+    broker-url: ${MQTT_BROKER_URL:tcp://localhost:1883}
+    client-id: unified-scheduler
+    username: ${MQTT_USERNAME:}
+    password: ${MQTT_PASSWORD:}
+  
+  # Web Service配置
+  webservice:
+    enabled: true
+    connection-timeout: 30000
+    receive-timeout: 60000
+
+# 数据处理配置
+data-processing:
+  # 数据转换引擎配置
+  transformation:
+    enabled: true
+    script-engine: groovy
+    cache-size: 100
+  
+  # 数据保存配置
+  persistence:
+    # MQ发送配置
+    mq:
+      enabled: true
+      exchange: unified.scheduler.data
+      routing-key: processed.data
+    
+    # 统一保存API配置
+    api:
+      enabled: true
+      base-url: ${SAVE_API_BASE_URL:http://localhost:8081/api}
+      retry-times: 3
+      retry-interval: 1000
+
+# 接口调用日志配置
+interface-logging:
+  enabled: true
+  level: INFO
+  include-request-body: true
+  include-response-body: true
+  max-body-size: 10240
+
+# 管理端点配置
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: when-authorized
+
+# 日志配置
+logging:
+  level:
+    com.cloudpower.scheduler: INFO
+    org.springframework.web: WARN
+    org.hibernate.SQL: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    path: /data/logs/unified-scheduler
