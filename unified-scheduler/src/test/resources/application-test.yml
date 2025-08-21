@@ -1,0 +1,52 @@
+# 测试环境配置
+spring:
+  profiles:
+    active: test
+  
+  # 使用内存数据库进行测试
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: 
+  
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+  
+  # 禁用Redis
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+      - org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration
+  
+  redis:
+    url: 
+
+# 外部系统配置
+external-systems:
+  http:
+    connect-timeout: 5000
+    read-timeout: 10000
+
+# 数据处理配置
+data-processing:
+  transformation:
+    enabled: false
+  persistence:
+    mq:
+      enabled: false
+    api:
+      enabled: false
+
+# 接口调用日志配置
+interface-logging:
+  enabled: false
+
+# 日志配置
+logging:
+  level:
+    com.cloudpower.scheduler: WARN
+    org.springframework.web: WARN
+    org.hibernate: WARN
